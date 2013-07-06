@@ -1,30 +1,28 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(hid)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
+find_package(catkin 
+  REQUIRED COMPONENTS 
+    roscpp 
+    rospy 
+    std_msgs
+)
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
+# TODO DHP - create rnrpkgConfig.cmake for cmake compatibility with rnr libs
+find_library(
+  rnr_LIBRARIES
+  NAMES hekateros Dynamixel botsense netmsgs rnr_appkit rnr
+  PATHS /prj/lib /prj/lib/rnr
+)
 
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
-#######################################
-## Declare ROS messages and services ##
-#######################################
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+#add_message_files(
+#DIRECTORY msg
+#FILES
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -48,7 +46,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES hid
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
@@ -60,17 +58,15 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include
+include_directories(
+  include
+  /prj/include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 
-## Declare a cpp library
-# add_library(hid
-#   src/${PROJECT_NAME}/hid.cpp
-# )
-
 ## Declare a cpp executable
-# add_executable(hid_node src/hid_node.cpp)
+add_executable(xbox_360 src/xbox_360/xbox_360.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
