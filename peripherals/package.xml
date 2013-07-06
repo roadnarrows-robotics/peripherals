@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>peripherals</name>
+  <version>0.0.1</version>
+  <description>A metapackage for installing RoadNarrows' ROS packages for peripheral and hardware components (Human Input Devices (HIDs), motor controllers, Inertial measurement units (IMUs), etc.)</description>
+  <maintainer email="daniel@roadnarrows.com">daniel packard</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://github.com/roadnarrows-robotics/peripherals</url>
+
+  <author email="robin.knight@roadnarrows.com">robin knight</author>
+  <author email="daniel@roadnarrows.com">daniel packard</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>game_controller</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+
+</package>
