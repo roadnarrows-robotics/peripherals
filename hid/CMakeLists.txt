@@ -3,53 +3,54 @@ project(hid)
 
 find_package(catkin 
   REQUIRED COMPONENTS 
+    message_generation 
     roscpp 
     rospy 
     std_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
-
-# TODO DHP - create rnrpkgConfig.cmake for cmake compatibility with rnr libs
 find_library(
-  rnr_LIBRARIES
-  NAMES hekateros Dynamixel botsense netmsgs rnr_appkit rnr
-  PATHS /prj/lib /prj/lib/rnr
+rnr_LIBRARIES2
+NAMES hid rnr
+PATHS /prj/lib /prj/lib/rnr
 )
 
-# catkin_python_setup()
+#catkin_python_setup()
 
-#add_message_files(
-#DIRECTORY msg
-#FILES
-#)
-
-## Generate services in the 'srv' folder
-# add_service_files(
+# add_message_files(
 #   FILES
-#   Service2.srv
 # )
 
-## Generate added messages and services with any dependencies listed here
+# add_service_files(
+#   FILES
+# )
+
 # generate_messages(
 #   DEPENDENCIES
 #   std_msgs
 # )
 
-include_directories(
-  include
-  /prj/include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES hid
+#  CATKIN_DEPENDS message_generation roscpp rospy std_msgs
+#  DEPENDS system_lib
 )
 
-## Declare a cpp executable
+include_directories(include
+  /prj/include
+  /opt/include
+  ${catkin_INCLUDE_DIRS}
+)
+
 add_executable(xbox_360 src/xbox_360/xbox_360.cpp)
-target_link_libraries(
+
+# add_dependencies(hid_node hid_generate_messages_cpp)
+
+## Specify libraries to link a library or executable target against
+target_link_libraries( 
   xbox_360
-  ${rnr_LIBRARIES}
+  ${rnr_LIBRARIES2}
   ${catkin_LIBRARIES}
 )
-
-add_dependencies(xbox_360 hid_generate_messages_cpp)
-

@@ -1,23 +1,44 @@
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+
+#include "rnr/rnrconfig.h"
+#include "rnr/log.h"
+
+#include "rnr/hid/HIDXbox360.h"
 #include "xbox_360.h"
+
+using namespace rnr;
 
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "xbox_360");
   ros::NodeHandle n;
 
-  ros::Publisher test = n.advertise<std_msgs::String>("chitchat", 1000);
+  pXbox = new HIDXbox360();
 
-  ros::Rate loop_rate(10);
+  if( pXbox->open() < 0 )
+  {
+    ROS_FATAL("Failed to open Xbox 360 controller.");
+  }
+  else if( !pXbox->ping() )
+  {
+    ROS_FATAL("Unable to ping Xbox 360 controller.");
+  }
 
-  ROS_INFO("xbox 360 node is under dev...");
+  ros::Rate loop_rate(100);
+  pXbox->debugPrintHdr();
+
   while(ros::ok())
   {
-    std_msgs::String msg;
-    msg.data="hello";
-    test.publish(msg);
+    pXbox->update();
+    pXbox->debugPrintState();
+    pXbox->setRumble(pXbox->getFeatureVal(Xbox360FeatIdLeftTrigger), 
+                     pXbox->getFeatureVal(Xbox360FeatIdRightTrigger));
     ros::spinOnce();
     loop_rate.sleep();
   }
+
+  pXbox->close();
+  delete pXbox;
+
+  return 0;
 }
