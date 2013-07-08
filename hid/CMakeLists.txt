@@ -23,12 +23,14 @@ add_message_files(
   DIRECTORY msg
   FILES
     Controller360State.msg
+    RumbleCmd.msg
 )
 
 add_service_files(
   DIRECTORY srv
   FILES
-  SetLED.srv
+    Ping.srv
+    SetLED.srv
     SetRumble.srv
 )
 

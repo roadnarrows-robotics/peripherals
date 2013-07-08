@@ -6,8 +6,11 @@
 #include "rnr/hid/HIDXbox360.h"
 #include "hid/Controller360State.h"
 #include "hid/SetRumble.h"
+
 #include "xbox_360_Services.h"
+#include "xbox_360_Subscriptions.h"
 #include "xbox_360_StatePub.h"
+
 #include "xbox_360.h"
 
 using namespace rnr;
@@ -22,10 +25,12 @@ int main(int argc, char* argv[])
   if( pXbox->open() < 0 )
   {
     ROS_FATAL("Failed to open Xbox 360 controller.");
+    return -1;
   }
   else if( !pXbox->ping() )
   {
     ROS_FATAL("Unable to ping Xbox 360 controller.");
+    return -1;
   }
 
   //
@@ -33,23 +38,31 @@ int main(int argc, char* argv[])
   ros::Publisher controller_360_state_pub =
     n.advertise<hid::Controller360State>("controller_360_state", 1);
 
+
   // 
   // services
   ros::ServiceServer set_rumble_ser   = n.advertiseService("set_rumble",
                                                            SetRumble);
+
   ros::ServiceServer set_led_ser      = n.advertiseService("set_led",
                                                            SetLED);
-  ros::Rate loop_rate(30);
-  pXbox->debugPrintHdr();
 
+  ros::ServiceServer ping_contr_ser   = n.advertiseService("ping_controller",
+                                                           Ping);
+
+  // 
+  // subsrciptions
+  ros::Subscriber rumble_cmd_sub = n.subscribe("rumble_command", 1,
+                                               rumble_commandCB);
+
+  //
+  // published state data
   hid::Controller360State s;
 
+  ros::Rate loop_rate(30);
   while(ros::ok())
   {
     pXbox->update();
-    pXbox->debugPrintState();
-    //pXbox->setRumble(pXbox->getFeatureVal(Xbox360FeatIdLeftTrigger), 
-                     //pXbox->getFeatureVal(Xbox360FeatIdRightTrigger));
     updateController360State(s);
     controller_360_state_pub.publish(s);
     ros::spinOnce();

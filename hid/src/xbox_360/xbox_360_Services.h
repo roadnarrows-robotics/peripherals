@@ -1,8 +1,10 @@
 #ifndef _XBOX_360_SERVICES_H
 #define _XBOX_360_SERVICES_H
 
+#include "hid/Ping.h"
 #include "hid/SetLED.h"
 #include "hid/SetRumble.h"
+
 #include "xbox_360.h"
 
 /*!
@@ -11,6 +13,8 @@
 bool SetRumble(hid::SetRumble::Request &req,
                hid::SetRumble::Response &res)
 {
+  ROS_INFO("Setting Controller Rumble: %d %d", req.left_rumble, 
+                                               req.right_rumble);
   res.rc = pXbox->setRumble(req.left_rumble, req.right_rumble);
   return true;
 }
@@ -21,7 +25,18 @@ bool SetRumble(hid::SetRumble::Request &req,
 bool SetLED(hid::SetLED::Request &req,
             hid::SetLED::Response &res)
 {
+  ROS_INFO("Setting Controller LED Pattern: %d", req.n);
   res.rc = pXbox->setLED(req.n);
+  return true;
+}
+
+/*!
+ * \brief Ping the xbox controller
+ */
+bool Ping(hid::Ping::Request &req,
+          hid::Ping::Response &res)
+{
+  res.rc = pXbox->ping();
   return true;
 }
 
