@@ -20,8 +20,8 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "xbox_360");
   ros::NodeHandle n;
 
+  // initialize global controll interface
   pXbox = new HIDXbox360();
-
   if( pXbox->open() < 0 )
   {
     ROS_FATAL("Failed to open Xbox 360 controller.");
@@ -52,13 +52,14 @@ int main(int argc, char* argv[])
 
   // 
   // subsrciptions
-  ros::Subscriber rumble_cmd_sub = n.subscribe("rumble_command", 1,
-                                               rumble_commandCB);
+  ros::Subscriber rumble_cmd_sub      = n.subscribe("rumble_command", 1,
+                                                    rumble_commandCB);
 
   //
   // published state data
   hid::Controller360State s;
 
+  ROS_INFO("xbox_360 ready for action!");
   ros::Rate loop_rate(30);
   while(ros::ok())
   {
