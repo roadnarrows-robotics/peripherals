@@ -24,31 +24,26 @@ find_library(
 # FILES
 # )
 
-# add_service_files(
-# DIRECTORY srv
-# FILES
-# )
+add_service_files( DIRECTORY srv FILES SetSpeed.srv)
 
-# generate_messages(
-# DEPENDENCIES
-# std_msgs
-# )
+generate_messages( DEPENDENCIES std_msgs)
 
 catkin_package()
 
-include_directories(include
+include_directories(
+  include
   /prj/include
   /opt/include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
 
-# add_executable(xbox_360 src/xbox_360/xbox_360.cpp)
+add_executable(roboteq_sm src/roboteq_sm/roboteq_sm.cpp)
 
-# target_link_libraries( 
-# xbox_360
-# ${rnr_LIBRARIES3}
-# ${catkin_LIBRARIES}
-# )
+target_link_libraries( 
+  roboteq_sm
+  ${rnr_LIBRARIES3}
+  ${catkin_LIBRARIES}
+)
 
-# add_dependencies(xbox_360 hid_generate_messages_cpp)
+add_dependencies(roboteq_sm mot_generate_messages_cpp)
