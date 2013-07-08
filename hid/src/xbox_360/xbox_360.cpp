@@ -18,7 +18,7 @@ using namespace rnr;
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "xbox_360");
-  ros::NodeHandle n;
+  ros::NodeHandle n("xbox_360");
 
   // initialize global controll interface
   pXbox = new HIDXbox360();
