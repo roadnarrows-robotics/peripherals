@@ -5,6 +5,7 @@
 
 #include "rnr/hid/HIDXbox360.h"
 #include "hid/Controller360State.h"
+#include "hid/SetRumble.h"
 #include "xbox_360_Services.h"
 #include "xbox_360_StatePub.h"
 #include "xbox_360.h"
@@ -32,6 +33,10 @@ int main(int argc, char* argv[])
   ros::Publisher controller_360_state_pub =
     n.advertise<hid::Controller360State>("controller_360_state", 1);
 
+  // 
+  // services
+  ros::ServiceServer set_rumble_ser   =n.advertiseService("set_rumble",
+                                                          SetRumble);
   ros::Rate loop_rate(100);
   pXbox->debugPrintHdr();
 
@@ -41,8 +46,8 @@ int main(int argc, char* argv[])
   {
     pXbox->update();
     pXbox->debugPrintState();
-    pXbox->setRumble(pXbox->getFeatureVal(Xbox360FeatIdLeftTrigger), 
-                     pXbox->getFeatureVal(Xbox360FeatIdRightTrigger));
+    //pXbox->setRumble(pXbox->getFeatureVal(Xbox360FeatIdLeftTrigger), 
+                     //pXbox->getFeatureVal(Xbox360FeatIdRightTrigger));
     updateController360State(s);
     controller_360_state_pub.publish(s);
     ros::spinOnce();

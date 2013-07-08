@@ -25,9 +25,11 @@ add_message_files(
     Controller360State.msg
 )
 
-# add_service_files(
-#   FILES
-# )
+add_service_files(
+  DIRECTORY srv
+  FILES
+    SetRumble.srv
+)
 
 generate_messages(
   DEPENDENCIES
