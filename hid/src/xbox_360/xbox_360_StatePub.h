@@ -8,6 +8,9 @@
 
 using namespace rnr;
 
+/*!
+ * \brief Update the controller_360_state to be published.
+ */
 int updateController360State(hid::Controller360State  &s)
 {
   int *pState = (int*)pXbox->getCurrentState();

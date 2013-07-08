@@ -35,9 +35,11 @@ int main(int argc, char* argv[])
 
   // 
   // services
-  ros::ServiceServer set_rumble_ser   =n.advertiseService("set_rumble",
-                                                          SetRumble);
-  ros::Rate loop_rate(100);
+  ros::ServiceServer set_rumble_ser   = n.advertiseService("set_rumble",
+                                                           SetRumble);
+  ros::ServiceServer set_led_ser      = n.advertiseService("set_led",
+                                                           SetLED);
+  ros::Rate loop_rate(30);
   pXbox->debugPrintHdr();
 
   hid::Controller360State s;
