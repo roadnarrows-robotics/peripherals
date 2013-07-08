@@ -4,6 +4,9 @@
 #include "rnr/log.h"
 
 #include "rnr/hid/HIDXbox360.h"
+#include "hid/Controller360State.h"
+#include "xbox_360_Services.h"
+#include "xbox_360_StatePub.h"
 #include "xbox_360.h"
 
 using namespace rnr;
@@ -24,8 +27,15 @@ int main(int argc, char* argv[])
     ROS_FATAL("Unable to ping Xbox 360 controller.");
   }
 
+  //
+  // Published Topics
+  ros::Publisher controller_360_state_pub =
+    n.advertise<hid::Controller360State>("controller_360_state", 1);
+
   ros::Rate loop_rate(100);
   pXbox->debugPrintHdr();
+
+  hid::Controller360State s;
 
   while(ros::ok())
   {
@@ -33,6 +43,8 @@ int main(int argc, char* argv[])
     pXbox->debugPrintState();
     pXbox->setRumble(pXbox->getFeatureVal(Xbox360FeatIdLeftTrigger), 
                      pXbox->getFeatureVal(Xbox360FeatIdRightTrigger));
+    updateController360State(s);
+    controller_360_state_pub.publish(s);
     ros::spinOnce();
     loop_rate.sleep();
   }
