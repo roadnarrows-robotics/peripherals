@@ -14,7 +14,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_library(
   rnr_LIBRARIES2
   NAMES hid rnr
-  PATHS /prj/lib /prj/lib/rnr
+  PATHS /prj/lib /prj/lib/rnr /usr/local/lib /usr/local/lib/rnr
 )
 
 #catkin_python_setup()
@@ -56,4 +56,4 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-add_dependencies(xbox_360 hid_generate_messages_cpp)
+add_dependencies(xbox_360 hid_gencpp)
