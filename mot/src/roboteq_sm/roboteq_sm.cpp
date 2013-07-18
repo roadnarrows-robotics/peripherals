@@ -2,8 +2,10 @@
 #include <string>
 #include "ros/ros.h"
 #include "mot/SetSpeed.h"
+#include "mot/SpeedCmd.h"
 //#include "mot/SetCurrentLimits.h"
 #include "roboteq_sm.h"
+#include "roboteq_sm_Subscriptions.h"
 #include "rnr/mot/MotRoboteqSmall.h"
 
 using namespace std;
@@ -41,6 +43,11 @@ int main(int argc, char* argv[])
   ros::ServiceServer set_speed_ser = n.advertiseService("set_speed",
                                                        SetSpeed);
 
+  //
+  // Subscriptions
+  ros::Subscriber speed_command_sub = n.subscribe("speed_command", 1,
+                                                  speed_commandCB);
+
 //  ros::ServiceServer set_current_ser = n.advertiseService("set_current_lim",
 //                                                         SetCurrentLimits);
   ros::spin();
@@ -51,5 +58,6 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  return 0;
+  return 0;  
+
 }

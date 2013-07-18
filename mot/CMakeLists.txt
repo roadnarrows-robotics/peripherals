@@ -19,10 +19,11 @@ find_library(
 
 #catkin_python_setup()
 
-# add_message_files(
-# DIRECTORY msg
-# FILES
-# )
+add_message_files(
+DIRECTORY msg
+FILES
+  SpeedCmd.msg
+)
 
 add_service_files( DIRECTORY srv FILES SetSpeed.srv)
 
