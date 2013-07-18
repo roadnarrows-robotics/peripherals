@@ -2,6 +2,7 @@
 #include <string>
 #include "ros/ros.h"
 #include "mot/SetSpeed.h"
+//#include "mot/SetCurrentLimits.h"
 #include "roboteq_sm.h"
 #include "rnr/mot/MotRoboteqSmall.h"
 
@@ -9,6 +10,9 @@ using namespace std;
 
 bool SetSpeed(mot::SetSpeed::Request &req,
               mot::SetSpeed::Response &rsp)
+//bool SetCurrentLimits(mot::SetCurrentLimits::Request &req,
+//                      mot::SetCurrentLimits::Response &rsp)
+                      
 {
   ROS_INFO("Setting speed");
     pMot->setSpeed(req.mot_id,req.speed);
@@ -31,10 +35,14 @@ int main(int argc, char* argv[])
   }
 
 // TODO - create services, subscriptions, published topics, etc
-
+  
+  //
+  // Services
   ros::ServiceServer set_speed_ser = n.advertiseService("set_speed",
                                                        SetSpeed);
 
+//  ros::ServiceServer set_current_ser = n.advertiseService("set_current_lim",
+//                                                         SetCurrentLimits);
   ros::spin();
 
   if(pMot->close()!=0)

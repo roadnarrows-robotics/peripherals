@@ -1,0 +1,4 @@
+unit8 mot_id 
+int16 current
+-----
+int8 rc

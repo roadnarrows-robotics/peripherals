@@ -1,5 +1,5 @@
 <launch>
-  <node name="turtle1" pkg="TODO" type="TODO"/>
+  <node name="turtle1" pkg="turtlesim" type="turtlesim_node"/>
   <node name="xbox_360" pkg="hid" type="xbox_360"/>
-  <node name="turtle_control_demo" pkg="hid" type="turtle_control_demo"/>
+  <node name="demo_turtle" pkg="hid" type="demo_turtle"/>
 </launch>
