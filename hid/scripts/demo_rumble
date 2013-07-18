@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import rospy
+
+from hid.msg import *
+
+## set rumble callback function
+def rumble(data, pub):
+    left_rumble  = data.left_trig
+    right_rumble = data.right_trig
+    pub.publish(RumbleCmd(left_rumble, right_rumble))
+
+
+if __name__ == '__main__':
+    rospy.init_node("set_rumble")
+    pub = rospy.Publisher("xbox_360/rumble_command", RumbleCmd)
+    sub = rospy.Subscriber("xbox_360/controller_360_state", 
+                           Controller360State, 
+                           rumble, pub)
+
+    rospy.spin()

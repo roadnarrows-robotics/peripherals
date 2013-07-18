@@ -1,0 +1,4 @@
+<launch>
+  <node name="xbox_360" pkg="hid" type="xbox_360"/>
+  <node name="demo_rumble" pkg="hid" type="demo_rumble"/>
+</launch>
