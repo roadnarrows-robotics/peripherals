@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import rospy
+
+from hid.msg import Controller360State
+from mot.msg import SpeedCmd
+
+def callback(data,pub):
+  mot_id = [1, 2]
+  speed = [data.left_trig, data.right_trig]
+  pub.publish(SpeedCmd(mot_id, speed))
+  rospy.loginfo(rospy.get_name() + ": Received command")
+
+if __name__=='__main__':
+  rospy.init_node('set_speed', anonymous=True)
+  pub = rospy.Publisher('/roboteq/speed_command', SpeedCmd)
+  rospy.Subscriber("xbox_360/controller_360_state",Controller360State, callback,                  pub)
+
+  rospy.spin()
