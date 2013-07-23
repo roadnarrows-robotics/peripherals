@@ -1,0 +1,5 @@
+<launch>
+  <node name="roboteq_sm" pkg="mot" type="roboteq"/>
+  <node name="xbox_360" pkg="hid" type="xbox_360"/>
+  <node name="demo_roboteq" pkg="hid" type="demo_roboteq"/>
+</launch>

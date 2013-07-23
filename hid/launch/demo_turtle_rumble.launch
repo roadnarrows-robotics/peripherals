@@ -1,0 +1,5 @@
+<launch>
+  <node name="turtle1" pkg="turtlesim" type="turtlesim_node"/>
+  <node name="xbox_360" pkg="hid" type="xbox_360"/>
+  <node name="demo_turtle_rumble" pkg="hid" type="demo_turtle_rumble"/>
+</launch>

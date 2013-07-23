@@ -1,0 +1,35 @@
+#!/usr/bin/env python 
+
+import roslib; roslib.load_manifest('hid')
+
+import rospy
+from std_msgs.msg import Bool
+from hid.msg import *
+from turtlesim.msg import Velocity
+
+def callback(data,pub_velocity):
+  v= Velocity()
+  v.linear = data.left_joy_y/32000.0
+  v.angular =-1*data.left_joy_x/32000.0
+  pub_velocity.publish(v)
+  rospy.loginfo(rospy.get_name() + ": Received command")
+
+def collision_callback(collision, pub_rumble):
+  if (collision.data==True):
+#  {
+    pub_rumble.publish(RumbleCmd(255,255))
+#  }
+  else:
+#  {
+    pub_rumble.publish(RumbleCmd(0,0))
+#  }
+
+if __name__== '__main__':
+  rospy.init_node('turtlesim_control',anonymous=True)
+  pub_velocity = rospy.Publisher('turtle1/command_velocity',Velocity)
+  sub_controller= rospy.Subscriber("xbox_360/controller_360_state", 
+                                  Controller360State, callback, pub_velocity)
+  pub_rumble= rospy.Publisher("xbox_360/rumble_command", RumbleCmd)
+  sub_collision= rospy.Subscriber("turtle1/collision", Bool, 
+                                 collision_callback, pub_rumble)
+  rospy.spin()
