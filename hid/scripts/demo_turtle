@@ -9,7 +9,7 @@ from turtlesim.msg import Velocity
 def callback(data,pub):
   v= Velocity()
   v.linear = data.left_joy_y/32000.0
-  v.angular = data.left_joy_x/32000.0
+  v.angular = -1*data.left_joy_x/32000.0
   pub.publish(v)
   rospy.loginfo(rospy.get_name() + ": Received command")
 
