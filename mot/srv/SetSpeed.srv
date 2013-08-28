@@ -1,4 +1,4 @@
 uint8 mot_id
-int16 speed
+float32 speed
 ---
 int8 rc

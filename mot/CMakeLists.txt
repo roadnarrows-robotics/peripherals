@@ -41,9 +41,10 @@ include_directories(
 
 add_executable(roboteq_sm src/roboteq_sm/roboteq_sm.cpp)
 
+#DHP -figure out why rnr_LIBS doesn't contain rnr
 target_link_libraries( 
   roboteq_sm
-  ${rnr_LIBRARIES3}
+  ${rnr_LIBRARIES3} rnr
   ${catkin_LIBRARIES}
 )
 

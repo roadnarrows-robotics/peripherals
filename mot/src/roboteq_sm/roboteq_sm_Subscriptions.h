@@ -18,6 +18,7 @@ void speed_commandCB(const mot::SpeedCmd &cmd)
   }
 
   pMot->setSpeed(cmd.mot_ids[0],cmd.speeds[0]);
+  pMot->setSpeed(cmd.mot_ids[1],cmd.speeds[1]);
 
 }
 

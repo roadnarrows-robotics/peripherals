@@ -27,11 +27,12 @@ int main(int argc, char* argv[])
     ROS_FATAL("Failed to open Xbox 360 controller.");
     return -1;
   }
-  else if( !pXbox->ping() )
+  //MIW Investigate ping function with wired controller
+  /*else if( !pXbox->ping() )
   {
     ROS_FATAL("Unable to ping Xbox 360 controller.");
     return -1;
-  }
+  }*/
 
   //
   // Published Topics
