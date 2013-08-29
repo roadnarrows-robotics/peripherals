@@ -23,7 +23,7 @@ add_message_files(
   DIRECTORY msg
   FILES
     Controller360State.msg
-    RumbleCmd.msg
+    LEDPattern.msg
 )
 
 add_service_files(

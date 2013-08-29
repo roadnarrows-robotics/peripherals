@@ -1,5 +1,6 @@
-LEDPattern led_pattern
+uint8 val
 
+### led patterns
 uint8 XBOX_LED_ALL_OFF=0
 uint8 XBOX_LED_ALL_BLINK_ON_1=1
 uint8 XBOX_LED_1_BLINK_ON=2
@@ -15,5 +16,3 @@ uint8 XBOX_LED_4_BLINK_ON_LONG=11
 uint8 XBOX_LED_4_BLINK=12
 uint8 XBOX_LED_ALL_SPIN_2=13
 uint8 XBOX_LED_ALL_BLINK=14
----
-int8 rc
