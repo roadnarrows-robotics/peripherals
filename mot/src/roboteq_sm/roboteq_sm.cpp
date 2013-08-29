@@ -7,6 +7,8 @@
 #include "roboteq_sm.h"
 #include "roboteq_sm_Subscriptions.h"
 #include "rnr/mot/MotRoboteqSmall.h"
+#include "rnr/rnrconfig.h"
+#include "rnr/log.h"
 
 using namespace std;
 
@@ -18,11 +20,14 @@ bool SetSpeed(mot::SetSpeed::Request &req,
 {
   ROS_INFO("Setting speed");
     pMot->setSpeed(req.mot_id,req.speed);
+    fprintf (stderr, "Speed = %f \n", req.speed);
   return true;
 }
 
 int main(int argc, char* argv[])
 {
+  // set loglevel for RN libs
+  LOG_SET_THRESHOLD(LOG_LEVEL_DIAG3);
   ros::init(argc, argv, "roboteq");
   ros::NodeHandle n("roboteq");
 

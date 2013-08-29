@@ -1,3 +1,3 @@
 uint8[] mot_ids
-int16[] speeds
+float32[] speeds
 
