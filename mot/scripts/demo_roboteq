@@ -7,13 +7,15 @@ from mot.msg import SpeedCmd
 
 def callback(data,pub):
   mot_id = [1, 2]
-  speed = [data.left_trig, data.right_trig]
+  speed = [(data.left_joy_y+data.left_joy_x)/32768.0,
+           (data.left_joy_x-data.left_joy_y)/32768.0]
   pub.publish(SpeedCmd(mot_id, speed))
   rospy.loginfo(rospy.get_name() + ": Received command")
 
 if __name__=='__main__':
   rospy.init_node('set_speed', anonymous=True)
   pub = rospy.Publisher('/roboteq/speed_command', SpeedCmd)
-  rospy.Subscriber("xbox_360/controller_360_state",Controller360State, callback,                  pub)
+  rospy.Subscriber("xbox_360/controller_360_state", Controller360State,
+                   callback, pub)
 
   rospy.spin()

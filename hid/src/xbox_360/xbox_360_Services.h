@@ -25,8 +25,8 @@ bool SetRumble(hid::SetRumble::Request &req,
 bool SetLED(hid::SetLED::Request &req,
             hid::SetLED::Response &res)
 {
-  ROS_INFO("Setting Controller LED Pattern: %d", req.n);
-  res.rc = pXbox->setLED(req.n);
+  ROS_INFO("Setting Controller LED Pattern: %d", req.led_pattern.val);
+  res.rc = pXbox->setLED(req.led_pattern.val);
   return true;
 }
 
