@@ -1,5 +1,5 @@
 // 
-// rosbridge xbo360 connection
+// xbox360 controller rosbridge handle
 // 
 // required js imports:
 //    http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js
@@ -7,75 +7,147 @@
 //    rosbridge_global.js
 //
 
-// xbox360 controller state subscription
-var xbox360_state_sub = new ROSLIB.Topic({
-  ros: ros,
-  name: "/xbox_360/controller_state",
-  messageType: "hid/Controller360State"
-})
+function xbox360(throttle_rate) {
+  //default throttle rate = 0
+  this.throttle_rate = typeof throttle_rate !== 'undefined' ? throttle_rate : 0;
+
+  /********************************
+   *  see PUBLIC INTERFACE below  *
+   ********************************/
+
+  // Topics
+  this.state_topic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/xbox_360/controller_360_state",
+    messageType: "hid/Controller360State",
+    throttle_rate : this.throttle_rate
+  });
+
+  this.rumble_topic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/xbox_360/rumble_command",
+    messageType: "hid/RumbleCmd"
+  })
+
+  //Services
+  this.ping_srv = new ROSLIB.Service({
+    ros: ros,
+    name: "/xbox_360/ping_controller",
+    messageType: "hid/Ping"
+  });
+
+  this.set_led_srv = new ROSLIB.Service({
+    ros: ros,
+    name: "/xbox_360/set_led",
+    messageType: "hid/SetLED"
+  });
 
 
-// xbox360 rumble command publisher and message
-var xbox360_rumble_pub = new ROSLIB.Topic({
-  ros: ros,
-  name: "/xbox_360/rumble_command",
-  messageType: "hid/RumbleCmd"
-})
+  /*********************
+   * Public Interface: *
+   *********************/
 
-var rumble_cmd = new ROSLIB.Message({
-  left_rumble:0,
-  right_rumble:0
-});
+  /* 
+   * @brief Subscribe to the xbox360 controller state.
+   *
+   * @param cb : Callback to process the return hid/Controller360State message
+   **/
+  this.sub_state = function(cb) {
+    if(typeof cb == 'undefined') {
+      console.error("When subscribing to a topic, you must provide a callback");
+      return;
+    }
+    this.state_topic.subscribe(function(msg){cb(msg);});
+  }
 
-// xbox360 set_rumble service and service request
-var xbox360_set_rumble_srv = new ROSLIB.Service({
-  ros: ros,
-  name: "/xbox_360/set_rumble",
-  messageType: "hid/SetRumble"
-})
+  /*
+   * @brief Publish a command to the rumble topic
+   *
+   * @param left  : Left rumbler setting
+   * @param right : Right rumbler setting
+   * @param cb    : Optional callback to process the return code
+   **/
+  this.pub_rumble = function(left, right, cb) {
+    // set default callback
+    cb = typeof cb !== 'undefined' ? cb : function(rsp){};
 
-var set_rumble_req = new ROSLIB.ServiceRequest({
-  left_rumble:0,
-  right_rumble:0
-});
+    var req = new ROSLIB.Message({
+      left_rumble:0,
+      right_rumble:0
+    });
 
+    this.rumble_topic.publish(req, function(rsp){cb(rsp)});
+  }
 
-// xbox360 set_led service and service request
-var xbox360_set_led_srv = new ROSLIB.Service({
-  ros: ros,
-  name: "/xbox_360/set_led",
-  messageType: "hid/SetLED"
-})
+  /*
+   * @brief Publish a command to the rumble topic
+   *
+   * @param pattern  : Left rumbler setting
+   * @param cb    : Optional callback to process the return code
+   **/
+  this.set_led = function(pattern, cb) {
+    cb = typeof cb !== 'undefined' ? cb : function(rsp){};
 
-var set_led_req = new ROSLIB.ServiceRequest({
-  val:0 // one of 0-14. TODO: define enum for LED settings
-});
+    var msg = new ROSLIB.Message({
+      val:pattern,
+    });
 
+    var req = new ROSLIB.ServiceRequest({
+      led_pattern:msg
+    })
 
-// xbox360 ping service
-var xbox360_ping_srv = new ROSLIB.Service({
-  ros: ros,
-  name: "/xbox_360/ping_controller",
-  messageType: "hid/SetLED"
-})
+    this.set_led_srv.callService(req, function(rsp){cb(rsp);});
+  }
 
-var ping_req = new ROSLIB.ServiceRequest({});
+  this.ping = function(cb) {
+    cb = typeof cb !== 'undefined' ? cb : function(rsp){};
+    var req = new ROSLIB.ServiceRequest({});
+    this.ping_srv.callService(req, function(rsp){cb(rsp);});
+  }
 
+  /****************************
+   * enums and default values *
+   ****************************/
+  // Available LED patterns
+  this.led_pattern = {
+    ALL_OFF       : 0,
+    ALL_ON_BLINK  : 1,
+    LED1_BLINK_ON : 2,
+    LED2_BLINK_ON : 3,
+    LED3_BLINK_ON : 4,
+    LED4_BLINK_ON : 5,
+    LED1_ON       : 6,
+    LED2_ON       : 7,
+    LED3_ON       : 8,
+    LED4_ON       : 9,
+    ALL_SPIN      : 10,
+    LED4_BLINK_LONG : 11,
+    LED4_BLINK    : 12,
+    ALL_SPIN2     : 13,
+    ALL_BLINK     : 14
+  };
 
-// convenience functions
-function xbox360_set_rumble(left, right) {
-  console.info(set_rumble_req);
-  set_rumble_req.left_rumble = left;
-  set_rumble_req.right_rumble = right;
-
-  console.info(set_rumble_req);
-  xbox360_set_rumble_srv.callService(set_rumble_req, function(res,err){});
-}
-
-function xbox360_set_led(val) {
-  console.info(set_led_req);
-  set_led_req.left_rumble = left;
-
-  console.info(set_led_req);
-  xbox360_set_led_srv.callService(set_led_req, function(res,err){});
+  this.default_state = {
+    a_button: 0,
+    b_button: 0,
+    back_button: 0,
+    center_button: 0,
+    dpad_down: 0,
+    dpad_left: 0,
+    dpad_right: 0,
+    dpad_up: 0,
+    left_bump: 0,
+    left_joy_click: 0,
+    left_joy_x: 0,
+    left_joy_y: 0,
+    left_trig: 0,
+    right_bump: 0,
+    right_joy_click: 0,
+    right_joy_x: 0,
+    right_joy_y: 0,
+    right_trig: 0,
+    start_button: 0,
+    x_button: 0,
+    y_button: 0
+  };
 }
