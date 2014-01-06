@@ -159,4 +159,4 @@ function xbox360(throttle_rate) {
   };
 }
 
-xbox = new xbox360();
+xbox = new xbox360(50);

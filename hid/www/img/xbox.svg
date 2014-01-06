@@ -1,4 +1,7 @@
-<svg width="100%" height="100%" viewBox="0 0 1024 768">
+<?xml version="1.0" standalone="no"?> 
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg id="xbox_vis_svg" width="100%" height="100%" viewBox="0 0 1024 768" xmlns="http://www.w3.org/2000/svg" version="1.1">
     <path id="left_trig" fill="#444" stroke="#222" stroke-width="6.0" stroke-linejoin="round" stroke-linecap="butt" d="m292 10l-15 0s-20 0 -20 20l0 50l55 0l0 -50s0 -20 -20 -20z" fill-rule="nonzero"></path>
     <path id="right_trig" fill="#444" stroke="#222" stroke-width="6.0" stroke-linejoin="round" stroke-linecap="butt" d="m683 10l-15 0s-20 0 -20 20l0 50l55 0l0 -50s0 -20 -20 -20z" fill-rule="nonzero"></path>
     <path id="left_bump" fill="#888" stroke="#666" stroke-width="6.0" stroke-linejoin="round" stroke-linecap="butt" d="m272 33l-60 0s -30 0 -30 30l0 50l120 0l0 -50s0 -30 -30 -30z" fill-rule="nonzero"></path>
@@ -9,6 +12,7 @@
     <path id="light2" class="playerLight" d="M490,200 m 60 -5 s 0 -55 -55 -55" stroke="#090" stroke-width="7" />
     <path id="light3" class="playerLight" d="M490,200 m 60 5 s 0 55 -55 55" stroke="#090" stroke-width="7" />
     <path id="light4" class="playerLight" d="M490,200 m -60 5 s 0 55 55 55" stroke="#090" stroke-width="7" />
+    <g id="buttons"></g>
     <path id="dpad" 
     d="M360,370 m -55,0 l 0,20 l 35,0 l 0,35 l 40,0 l 0,-35 l 35,0 l 0,-40 l -35,0 l 0,-35 l -40,0 l 0,35 l -35,0 z" 
     fill="#444" stroke="#222" stroke-width="7" stroke-linejoin="round" />
