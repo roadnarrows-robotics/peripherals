@@ -72,8 +72,8 @@ function xbox360(throttle_rate) {
     cb = typeof cb !== 'undefined' ? cb : function(rsp){};
 
     var req = new ROSLIB.Message({
-      left_rumble:0,
-      right_rumble:0
+      left_rumble:left,
+      right_rumble:right
     });
 
     this.rumble_topic.publish(req, function(rsp){cb(rsp)});
@@ -105,6 +105,13 @@ function xbox360(throttle_rate) {
     this.ping_srv.callService(req, function(rsp){cb(rsp);});
   }
 
+  this.draw = function()
+  { 
+    d3.xml("../img/xbox.svg", "image/svg+xml", function(xml) {
+      document.getElementById('xbox_vis').appendChild(xml.documentElement);
+      createButtons(XboxButtonInfoTable);
+    });
+  }
   /****************************
    * enums and default values *
    ****************************/
@@ -151,3 +158,5 @@ function xbox360(throttle_rate) {
     y_button: 0
   };
 }
+
+xbox = new xbox360();

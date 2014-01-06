@@ -58,3 +58,8 @@ target_link_libraries(
 )
 
 add_dependencies(xbox_360 hid_gencpp)
+
+INSTALL(DIRECTORY www/img DESTINATION /opt/nginx/html/ros)
+INSTALL(DIRECTORY www/js DESTINATION /opt/nginx/html/ros)
+INSTALL(FILES www/html/ros/xbox360/index.html DESTINATION /opt/nginx/html/ros/xbox360)
+

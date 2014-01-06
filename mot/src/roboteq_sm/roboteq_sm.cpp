@@ -3,7 +3,6 @@
 #include "ros/ros.h"
 #include "mot/SetSpeed.h"
 #include "mot/SpeedCmd.h"
-//#include "mot/SetCurrentLimits.h"
 #include "roboteq_sm.h"
 #include "roboteq_sm_Subscriptions.h"
 #include "rnr/mot/MotRoboteqSmall.h"
@@ -14,8 +13,6 @@ using namespace std;
 
 bool SetSpeed(mot::SetSpeed::Request &req,
               mot::SetSpeed::Response &rsp)
-//bool SetCurrentLimits(mot::SetCurrentLimits::Request &req,
-//                      mot::SetCurrentLimits::Response &rsp)
                       
 {
   ROS_INFO("Setting speed");
@@ -33,11 +30,17 @@ int main(int argc, char* argv[])
 
   pMot=new MotRoboteqSmall;
 
-  string devName="/dev/ttyACM0";
+  string devName1="/dev/ttyACM0";
+  string devName2="/dev/ttyACM1";
   int baudRate=115200;
-  if(pMot->open(devName, baudRate)!=0)
+  if(pMot->open(devName1, baudRate)!=0)
   {
-    fprintf(stderr, "jnt failed to open\n");
+    fprintf(stderr, "jnt Motor 1 failed to open\n");
+    return -1;
+  }
+  if(pMot->open(devName2, baudRate)!=0)
+  {
+    fprintf(stderr, "jnt Motor 2 failed to open\n");
     return -1;
   }
 
@@ -53,8 +56,6 @@ int main(int argc, char* argv[])
   ros::Subscriber speed_command_sub = n.subscribe("speed_command", 1,
                                                   speed_commandCB);
 
-//  ros::ServiceServer set_current_ser = n.advertiseService("set_current_lim",
-//                                                         SetCurrentLimits);
   ros::spin();
 
   if(pMot->close()!=0)
