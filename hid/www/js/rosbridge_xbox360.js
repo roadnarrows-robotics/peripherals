@@ -8,44 +8,8 @@
 //
 
 function xbox360(throttle_rate) {
-  //default throttle rate = 0
+  // set default throttle rate = 0
   this.throttle_rate = typeof throttle_rate !== 'undefined' ? throttle_rate : 0;
-
-  /********************************
-   *  see PUBLIC INTERFACE below  *
-   ********************************/
-
-  // Topics
-  this.state_topic = new ROSLIB.Topic({
-    ros: ros,
-    name: "/xbox_360/controller_360_state",
-    messageType: "hid/Controller360State",
-    throttle_rate : this.throttle_rate
-  });
-
-  this.rumble_topic = new ROSLIB.Topic({
-    ros: ros,
-    name: "/xbox_360/rumble_command",
-    messageType: "hid/RumbleCmd"
-  })
-
-  //Services
-  this.ping_srv = new ROSLIB.Service({
-    ros: ros,
-    name: "/xbox_360/ping_controller",
-    messageType: "hid/Ping"
-  });
-
-  this.set_led_srv = new ROSLIB.Service({
-    ros: ros,
-    name: "/xbox_360/set_led",
-    messageType: "hid/SetLED"
-  });
-
-
-  /*********************
-   * Public Interface: *
-   *********************/
 
   /* 
    * @brief Subscribe to the xbox360 controller state.
@@ -112,9 +76,7 @@ function xbox360(throttle_rate) {
       createButtons(XboxButtonInfoTable);
     });
   }
-  /****************************
-   * enums and default values *
-   ****************************/
+
   // Available LED patterns
   this.led_pattern = {
     ALL_OFF       : 0,
@@ -157,6 +119,39 @@ function xbox360(throttle_rate) {
     x_button: 0,
     y_button: 0
   };
+
+  //------------------------------------------------------------------------//
+  //                          PRIVATE IMPLEMENTATION                        //
+  //------------------------------------------------------------------------//
+
+  // Topics
+  this.state_topic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/xbox_360/controller_360_state",
+    messageType: "hid/Controller360State",
+    throttle_rate : this.throttle_rate
+  });
+
+  this.rumble_topic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/xbox_360/rumble_command",
+    messageType: "hid/RumbleCmd"
+  })
+
+  //Services
+  this.ping_srv = new ROSLIB.Service({
+    ros: ros,
+    name: "/xbox_360/ping_controller",
+    messageType: "hid/Ping"
+  });
+
+  this.set_led_srv = new ROSLIB.Service({
+    ros: ros,
+    name: "/xbox_360/set_led",
+    messageType: "hid/SetLED"
+  });
+
+
 }
 
 xbox = new xbox360(50);
