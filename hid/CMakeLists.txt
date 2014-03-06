@@ -11,17 +11,15 @@ find_package(catkin
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-find_library(
-  rnr_LIBRARIES2
-  NAMES hid rnr
-  PATHS /prj/lib /prj/lib/rnr /usr/local/lib /usr/local/lib/rnr
-)
+set(rnr_DIR /prj/lib/rnr)
+find_package(rnr)
 
 #catkin_python_setup()
 
 add_message_files(
   DIRECTORY msg
   FILES
+    ConnStatus.msg
     Controller360State.msg
     LEDPattern.msg
     RumbleCmd.msg
@@ -43,7 +41,7 @@ generate_messages(
 catkin_package()
 
 include_directories(include
-  /prj/include
+  ${rnr_INCLUDE_DIRS}
   /opt/include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
@@ -53,7 +51,7 @@ add_executable(xbox_360 src/xbox_360/xbox_360.cpp)
 
 target_link_libraries( 
   xbox_360
-  ${rnr_LIBRARIES2}
+  ${rnr_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
