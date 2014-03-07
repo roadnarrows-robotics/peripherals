@@ -47,7 +47,9 @@ include_directories(include
   ${Boost_INCLUDE_DIRS}
 )
 
-add_executable(xbox_360 src/xbox_360/xbox_360.cpp)
+add_executable(xbox_360
+  src/xbox_360/xbox_360.cpp
+  src/xbox_360/xbox_360_main.cpp)
 
 target_link_libraries( 
   xbox_360

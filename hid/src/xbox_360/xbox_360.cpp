@@ -1,169 +1,261 @@
-#include <sys/inotify.h>
-#include <errno.h>
+////////////////////////////////////////////////////////////////////////////////
+//
+// Package:   RoadNarrows Robotics Peripherals Human Iterface Device Package
+//
+// Link:      https://github.com/roadnarrows-robotics/peripherals
+//
+// ROS Node:  xbox_360
+//
+// File:      xbox_360.cpp
+//
+/*! \file
+ *
+ * $LastChangedDate$
+ * $Rev$
+ *
+ * \brief The ROS xbox_360 node class implementation.
+ *
+ * \author Danial Packard (daniel@roadnarrows.com)
+ * \author Robin Knight (robin.knight@roadnarrows.com)
+ *
+ * \par Copyright:
+ * (C) 2014  RoadNarrows
+ * (http://www.roadnarrows.com)
+ * \n All Rights Reserved
+ */
+/*
+ * @EulaBegin@
+ * 
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that
+ * (1) The above copyright notice and the following two paragraphs
+ * appear in all copies of the source code and (2) redistributions
+ * including binaries reproduces these notices in the supporting
+ * documentation.   Substantial modifications to this software may be
+ * copyrighted by their authors and need not follow the licensing terms
+ * described here, provided that the new terms are clearly indicated in
+ * all files where they apply.
+ * 
+ * IN NO EVENT SHALL THE AUTHOR, ROADNARROWS LLC, OR ANY MEMBERS/EMPLOYEES
+ * OF ROADNARROW LLC OR DISTRIBUTORS OF THIS SOFTWARE BE LIABLE TO ANY
+ * PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+ * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+ * EVEN IF THE AUTHORS OR ANY OF THE ABOVE PARTIES HAVE BEEN ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * THE AUTHOR AND ROADNARROWS LLC SPECIFICALLY DISCLAIM ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN
+ * "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ * 
+ * @EulaEnd@
+ */
+////////////////////////////////////////////////////////////////////////////////
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 
+#include <string>
+#include <map>
+
+//
+// ROS
+//
 #include "ros/ros.h"
 
-#define LOG
-#define LOGMOD "xbox_360"
+//
+// ROS generated hid messages.
+//
+#include "hid/ConnStatus.h"
+#include "hid/Controller360State.h"
 
+//
+// ROS generatated hid services.
+//
+#include "hid/Ping.h"
+#include "hid/SetLED.h"
+#include "hid/SetRumble.h"
+#include "hid/RumbleCmd.h"
+
+//
+// RoadNarrows embedded
+//
 #include "rnr/rnrconfig.h"
 #include "rnr/log.h"
-
 #include "rnr/hid/HIDXbox360.h"
 
-#include "hid/Controller360State.h"
-#include "hid/SetRumble.h"
-#include "hid/ConnStatus.h"
-
-#include "xbox_360_Services.h"
-#include "xbox_360_Subscriptions.h"
-#include "xbox_360_StatePub.h"
-
+//
+// Node headers.
+//
 #include "xbox_360.h"
 
+
+using namespace std;
 using namespace rnr;
+using namespace hid;
 
-static int NotifyFd;      ///< notify fild descriptor
-static int NotifyWdDev;   ///< notify slash dev watch descriptor
 
-static void runNode(HIDXbox360 &xbox)
+//------------------------------------------------------------------------------
+// Xbox360 Class
+//------------------------------------------------------------------------------
+
+Xbox360::Xbox360(ros::NodeHandle &nh, HIDXbox360 &hidXbox) :
+    m_nh(nh), m_hidXbox(hidXbox)
 {
-  ros::NodeHandle n("xbox_360");
-
-  //
-  // Published Topics
-  ros::Publisher controller_360_state_pub =
-    n.advertise<hid::Controller360State>("controller_360_state", 1);
-
-  ros::Publisher controller_360_conn_pub =
-    n.advertise<hid::ConnStatus>("conn_status", 1);
-
-  // 
-  // services
-  ros::ServiceServer set_rumble_ser   = n.advertiseService("set_rumble",
-                                                           SetRumble);
-
-  ros::ServiceServer set_led_ser      = n.advertiseService("set_led",
-                                                           SetLED);
-
-  ros::ServiceServer ping_contr_ser   = n.advertiseService("ping_controller",
-                                                           Ping);
-
-  // 
-  // subsrciptions
-  ros::Subscriber rumble_cmd_sub      = n.subscribe("rumble_command", 1,
-                                                    rumble_commandCB);
-
-  //
-  // published state data
-  hid::Controller360State s;
-  hid::ConnStatus msgConnStatus;
-
-  ROS_INFO("xbox_360 ready for action!");
-  ros::Rate loop_rate(30);
-
-  xbox.run();
-
-  while( xbox.isConnected() && ros::ok())
-  {
-    updateController360State(s);
-    controller_360_state_pub.publish(s);
-
-    msgConnStatus.is_connected = pXbox->isConnected();
-    msgConnStatus.is_linked = pXbox->isLinked();
-    controller_360_conn_pub.publish(msgConnStatus);
-
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
 }
 
-static int initWatch()
+Xbox360::~Xbox360()
 {
-  const char *sDev = "/dev";
-
-  if( (NotifyFd = inotify_init()) < 0 )
-  {
-    ROS_FATAL("Failed to initialize inotify.");
-    return -1;
-  }
-
-  NotifyWdDev = inotify_add_watch(NotifyFd, sDev, IN_CREATE);
-
-  if( NotifyWdDev < 0 )
-  {
-    ROS_FATAL("Failed to add directory %s to watch.", sDev);
-    return -1;
-  }
-
-  return 0;
 }
 
-static int watch()
+
+//..............................................................................
+// Services
+//..............................................................................
+
+void Xbox360::advertiseServices()
 {
-  const char *sPrefix = "xbox360";
+  string  strSvc;
 
-  // aligned read buffer
-  union
-  {
-    void   *p;          // force alignment (for bad compilers)
-    byte_t  buf[4096];  // the read buffer
-  } u;
+  strSvc = "ping_controller";
+  m_services[strSvc] = m_nh.advertiseService(strSvc,
+                                          &Xbox360::ping,
+                                          &(*this));
 
-  struct inotify_event *plugin;     // create (plug-in) event
+  strSvc = "set_led";
+  m_services[strSvc] = m_nh.advertiseService(strSvc,
+                                          &Xbox360::setLED,
+                                          &(*this));
 
-  fprintf(stderr, "watch()\n");
-
-  while( true )
-  {
-    if( read(NotifyFd, u.buf, sizeof(u.buf)) > 0 )
-    {
-      plugin = (struct inotify_event *)u.buf;
-      fprintf(stderr, "plugin name=%s\n", plugin->name);
-      if( strncmp(plugin->name, sPrefix, strlen(sPrefix)) == 0 )
-      {
-        fprintf(stderr, "got it\n");
-        return 0;
-      }
-    }
-    else
-    {
-      fprintf(stderr, "read() error\n");
-      return -1;
-    }
-  }
+  strSvc = "set_rumble";
+  m_services[strSvc] = m_nh.advertiseService(strSvc,
+                                          &Xbox360::setRumble,
+                                          &(*this));
 }
 
-int main(int argc, char* argv[])
+bool Xbox360::ping(hid::Ping::Request  &req,
+                   hid::Ping::Response &rsp)
 {
-  ros::init(argc, argv, "xbox_360");
+  ROS_DEBUG("ping_controller");
 
-  LOG_SET_THRESHOLD(LOG_LEVEL_DIAG3);
+  rsp.rc = m_hidXbox.ping();
 
-  if( initWatch() < 0 )
-  {
-    ROS_FATAL("Failed to initialize inotify watch.");
-    return 4;
-  }
+  return true;
+}
 
-  // initialize global controll interface
-  pXbox = new HIDXbox360();
+bool Xbox360::setLED(hid::SetLED::Request  &req,
+                     hid::SetLED::Response &rsp)
+{
+  ROS_DEBUG("set_led");
 
-  while( true )
-  {
-    if( pXbox->open() == 0 )
-    {
-      runNode(*pXbox);
-      pXbox->close();
-    }
-    else if( watch() < 0 )
-    {
-      return 4;
-    }
-  }
+  rsp.rc = m_hidXbox.setLED(req.led_pattern.val);
 
-  delete pXbox;
+  ROS_INFO("Set LED pattern %d.", req.led_pattern.val);
 
-  return 0;
+  return true;
+}
+
+bool Xbox360::setRumble(hid::SetRumble::Request  &req,
+                        hid::SetRumble::Response &rsp)
+{
+  ROS_DEBUG("set_rumble");
+
+  rsp.rc = m_hidXbox.setRumble(req.left_rumble, req.right_rumble);
+  
+  ROS_INFO("Set Rumble motors %d, %d.", req.left_rumble,req.right_rumble);
+
+  return true;
+}
+
+
+//..............................................................................
+// Topic Publishers
+//..............................................................................
+
+void Xbox360::advertisePublishers(int nQueueDepth)
+{
+  string  strPub;
+
+  strPub = "controller_360_state";
+  m_publishers[strPub] =
+    m_nh.advertise<hid::Controller360State>(strPub, nQueueDepth);
+
+  strPub = "conn_status";
+  m_publishers[strPub] = m_nh.advertise<hid::ConnStatus>(strPub, nQueueDepth);
+}
+
+void Xbox360::publish()
+{
+  publishXboxState();
+  publishConnStatus();
+}
+
+void Xbox360::publishXboxState()
+{
+  int *pState = (int *)m_hidXbox.getCurrentState();
+
+  m_msgXboxState.a_button          = pState[Xbox360FeatIdAButton];
+  m_msgXboxState.b_button          = pState[Xbox360FeatIdBButton];
+  m_msgXboxState.x_button          = pState[Xbox360FeatIdXButton];
+  m_msgXboxState.y_button          = pState[Xbox360FeatIdYButton];
+
+  m_msgXboxState.dpad_left         = pState[Xbox360FeatIdPadLeft];
+  m_msgXboxState.dpad_right        = pState[Xbox360FeatIdPadRight];
+  m_msgXboxState.dpad_up           = pState[Xbox360FeatIdPadUp];
+  m_msgXboxState.dpad_down         = pState[Xbox360FeatIdPadDown];
+
+  m_msgXboxState.back_button       = pState[Xbox360FeatIdBack];
+  m_msgXboxState.center_button     = pState[Xbox360FeatIdCenterX];
+  m_msgXboxState.start_button      = pState[Xbox360FeatIdStart];
+
+  m_msgXboxState.left_joy_click    = pState[Xbox360FeatIdLeftStickClick];
+  m_msgXboxState.left_joy_x        = pState[Xbox360FeatIdLeftJoyX];
+  m_msgXboxState.left_joy_y        = pState[Xbox360FeatIdLeftJoyY];
+
+  m_msgXboxState.right_joy_click   = pState[Xbox360FeatIdRightStickClick];
+  m_msgXboxState.right_joy_x       = pState[Xbox360FeatIdRightJoyX];
+  m_msgXboxState.right_joy_y       = pState[Xbox360FeatIdRightJoyY];
+
+  m_msgXboxState.left_bump         = pState[Xbox360FeatIdLeftBump];
+  m_msgXboxState.right_bump        = pState[Xbox360FeatIdRightBump];
+  m_msgXboxState.left_trig         = pState[Xbox360FeatIdLeftTrigger];
+  m_msgXboxState.right_trig        = pState[Xbox360FeatIdRightTrigger];
+
+  // publish
+  m_publishers["controller_360_state"].publish(m_msgXboxState);
+}
+
+void Xbox360::publishConnStatus()
+{
+  m_msgConnStatus.is_connected  = m_hidXbox.isConnected();
+  m_msgConnStatus.is_linked     = m_hidXbox.isLinked();
+
+  // publish
+  m_publishers["conn_status"].publish(m_msgConnStatus);
+}
+
+
+//..............................................................................
+// Subscribed Topics
+//..............................................................................
+
+void Xbox360::subscribeToTopics(int nQueueDepth)
+{
+  string  strSub;
+
+  strSub = "rumble_command";
+  m_subscriptions[strSub] = m_nh.subscribe(strSub, nQueueDepth,
+                                          &Xbox360::execRumbleCmd,
+                                          &(*this));
+}
+
+void Xbox360::execRumbleCmd(const hid::RumbleCmd &cmd)
+{
+  ROS_DEBUG("Executing rumble command.");
+
+  m_hidXbox.setRumble(cmd.left_rumble, cmd.right_rumble);
 }
