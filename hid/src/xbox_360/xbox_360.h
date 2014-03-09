@@ -148,6 +148,11 @@ namespace hid
     virtual void publish();
 
     /*!
+     * \brief Force publish disconnected connection status message.
+     */
+    virtual void publishDisconnect();
+
+    /*!
      * \brief Get bound node handle.
      *
      * \return Node handle.
@@ -175,6 +180,28 @@ namespace hid
     bool isConnected()
     {
       return m_hidXbox.isConnected();
+    }
+
+    /*!
+     * \brief Create and run USB update in thread.
+     *
+     * \param hz  Update Hertz.
+     *
+     * \return Returns 0 on success, \h_lt 0 on failure.
+     */
+    void run(float hz=30.0)
+    {
+      m_hidXbox.run();
+    }
+
+    /*!
+     * \brief Stop and destroy USB update thread.
+     *
+     * \return Returns 0 on success, \h_lt 0 on failure.
+     */
+    void stop()
+    {
+      m_hidXbox.stop();
     }
 
   protected:

@@ -238,6 +238,15 @@ void Xbox360::publishConnStatus()
   m_publishers["conn_status"].publish(m_msgConnStatus);
 }
 
+void Xbox360::publishDisconnect()
+{
+  m_msgConnStatus.is_connected  = false;
+  m_msgConnStatus.is_linked     = false;
+
+  // publish
+  m_publishers["conn_status"].publish(m_msgConnStatus);
+}
+
 
 //..............................................................................
 // Subscribed Topics

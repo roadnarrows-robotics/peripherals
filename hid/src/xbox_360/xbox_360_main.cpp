@@ -55,10 +55,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <sys/inotify.h>
+#include <unistd.h>
+#include <signal.h>
 #include <errno.h>
 #include <string.h>
 
 #include "ros/ros.h"
+
+#include <boost/regex.hpp>
 
 #define LOG
 #define LOGMOD "xbox_360"
@@ -85,12 +89,15 @@ using namespace rnr;
 #define APP_EC_INIT 2   ///< initialization fatal error
 #define APP_EC_EXEC 4   ///< execution fatal error
 
+#define NO_SIGNAL   0   ///< no signal receieved value
+
 //
 // Data
 //
 const char *NodeName = "xbox_360";  ///< this ROS node's name
-static int NotifyFd;      ///< notify fild descriptor
-static int NotifyWdDev;   ///< notify slash dev watch descriptor
+static int  NotifyFd;               ///< inotify file descriptor
+static int  NotifyWdDev;            ///< inotify slash dev watch descriptor
+static int  RcvSignal = NO_SIGNAL;  ///< received 'gracefull' signal
 
 
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -100,7 +107,8 @@ static int NotifyWdDev;   ///< notify slash dev watch descriptor
 //
 // Options
 //
-static int  OptsRcvTimeoutTh  = 0;                  ///< baud rate
+static int  OptsRcvTimeoutTh  = 0;      ///< xbox receive timeout threshold
+static int  OptsDaemon        = false;  ///< do [not] run as a daemon process
 
 /*!
  * \brief The package information.
@@ -145,6 +153,20 @@ static OptsPgmInfo_T AppPgmInfo =
  */
 static OptsInfo_T AppOptsInfo[] =
 {
+  // --daemon
+  {
+    "daemon",             // long_opt
+    OPTS_NO_SHORT,        // short_opt
+    no_argument,          // has_arg
+    true,                 // has_default
+    &OptsDaemon,          // opt_addr
+    OptsCvtArgBool,       // fn_cvt
+    OptsFmtBool,          // fn_fmt
+    NULL,                 // arg_name
+    "Run as a daemon process. The ROS node is created and destroyed "
+    "as an Xbox360 controller is connected and disconnected from the system."
+                          // opt desc
+  },
   // --threshold, t
   {
     "threshold",          // long_opt
@@ -171,6 +193,21 @@ static OptsInfo_T AppOptsInfo[] =
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 /*!
+ * \brief Signal handler to allow graceful shutdown of ROS node.
+ *
+ * \note This handler overrieds the roscpp SIGINT handler.
+ *
+ * \param sig   Signal number.
+ */
+static void sigHandler(int sig)
+{
+  RcvSignal = sig;
+
+  // All the default sigint handler does is call shutdown()
+  //ros::shutdown();
+}
+
+/*!
  * \brief Create and run ROS node.
  *
  * \param hidXbox   Opened Xbox360 hid instance.
@@ -179,10 +216,22 @@ static void runNode(HIDXbox360 &hidXbox)
 {
   string      strNodeName;  // ROS-given node name
 
+  // create ros node
   ros::NodeHandle nh(NodeName);
 
   // actual ROS-given node name
   strNodeName = ros::this_node::getName();
+
+  //
+  // Signals
+  //
+
+  // Override the default ros sigint handler. This must be set after the first
+  // NodeHandle is created.
+  signal(SIGINT, sigHandler);
+
+  // init will try to end service gracefully with this signal
+  signal(SIGTERM, sigHandler);
 
   //
   // Failed to connect.
@@ -197,26 +246,26 @@ static void runNode(HIDXbox360 &hidXbox)
   //
   // Create the xbox_360 node object.
   //
-  hid::Xbox360  xbox(nh, hidXbox);
+  hid::Xbox360  xbox360(nh, hidXbox);
 
   //
   // Advertise services.
   //
-  xbox.advertiseServices();
+  xbox360.advertiseServices();
 
   ROS_INFO("%s: Services registered.", strNodeName.c_str());
 
   //
   // Advertise publishers.
   //
-  xbox.advertisePublishers(4);
+  xbox360.advertisePublishers(4);
   
   ROS_INFO("%s: Publishers registered.", strNodeName.c_str());
   
   //
   // Subscribed to topics.
   //
-  xbox.subscribeToTopics(4);
+  xbox360.subscribeToTopics(4);
   
   ROS_INFO("%s: Subscribed topics registered.", strNodeName.c_str());
 
@@ -228,17 +277,32 @@ static void runNode(HIDXbox360 &hidXbox)
   //
   // Node loop.
   //
-  while( xbox.isConnected() && ros::ok() )
+  while( xbox360.isConnected() && ros::ok() && (RcvSignal == NO_SIGNAL) )
   {
-    // make any callbacks on pending ROS events
+    // Make any callbacks on pending ROS events.
     ros::spinOnce(); 
 
-    // publish all advertized topics
-    xbox.publish();
+    // Publish all advertized topics.
+    xbox360.publish();
 
-    // sleep to keep at loop rate
+    // Sleep to keep at loop rate.
     loop_rate.sleep();
   }
+
+  //
+  // Okay. Lost connection with Xbox only or received a 'nice' terminate signal.
+  // Publish a last connection status message to make sure subscribers get
+  // the 'no xbox' message.
+  //
+  if( ros::ok() )
+  {
+    xbox360.publishDisconnect();
+    usleep(500000);
+  }
+
+  ROS_INFO("%s: Node destroyed.", strNodeName.c_str());
+
+  ros::shutdown();
 }
 
 /*!
@@ -280,7 +344,9 @@ static int initWatch()
  */
 static int watch()
 {
-  const char *sPrefix = "xbox360";
+  static boost::regex reFilter("^(xbox360.*-\\d+)");
+  
+  boost::cmatch what;
 
   // aligned read buffer
   union
@@ -302,11 +368,14 @@ static int watch()
     if( read(NotifyFd, u.buf, sizeof(u.buf)) > 0 )
     {
       plugin = (struct inotify_event *)u.buf;
-      LOGDIAG2("New device %s", plugin->name);
-      if( strncmp(plugin->name, sPrefix, strlen(sPrefix)) == 0 )
+      if( boost::regex_match(plugin->name, what, reFilter) )
       {
-        LOGDIAG2("Got an Xbox360 controller.");
+        LOGDIAG2("Found an Xbox360 controller device %s.", plugin->name);
         return 0;
+      }
+      else
+      {
+        LOGDIAG2("Ignore device %s.", plugin->name);
       }
     }
     
@@ -334,7 +403,7 @@ int main(int argc, char* argv[])
   // 
   // Initialize the node.
   //
-  ros::init(argc, argv, "xbox_360");
+  ros::init(argc, argv, NodeName);
 
   //
   // Parse node-specific options and arguments (from librnr).
@@ -346,29 +415,48 @@ int main(int argc, char* argv[])
   //
   if( initWatch() < 0 )
   {
-    ROS_FATAL("Failed to initialize inotify watch.");
+    LOGERROR("Failed to initialize inotify watch.");
     return APP_EC_EXEC;
   }
 
   //
+  // Set error thresholds.
+  //
+  hidXbox.setErrorThresholds(30*OptsRcvTimeoutTh,
+                             HIDXbox360::NErrorRcvThDft,
+                             HIDXbox360::NErrorTotalThDft);
+
+  //
   // Daemon loop.
   //
-  while( true )
+  while( RcvSignal == NO_SIGNAL )
   {
     //
     // Try to open up an Xbox360 device.
     //
     if( hidXbox.open() == 0 )
     {
+      // Start reading controller state in thread.
+      hidXbox.run();
+
       // Opened the device, create and run as the xbox_360 ROS node.
       runNode(hidXbox);
 
       // End of ROS node session, close.
       hidXbox.close();
+
+      // A little respite.
+      usleep(1000000);
+
+      // Not running as a daemon.
+      if( !OptsDaemon )
+      {
+        return APP_EC_OK;
+      }
     }
 
     //
-    // Watch for new Xbox360 device to be plugged in.
+    // Watch for an Xbox360 device to be plugged in.
     //
     else if( watch() < 0 )
     {
