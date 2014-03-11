@@ -195,7 +195,7 @@ static OptsInfo_T AppOptsInfo[] =
 /*!
  * \brief Signal handler to allow graceful shutdown of ROS node.
  *
- * \note This handler overrieds the roscpp SIGINT handler.
+ * \note This handler overrides the roscpp SIGINT handler.
  *
  * \param sig   Signal number.
  */
