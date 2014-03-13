@@ -231,8 +231,19 @@ void Xbox360::publishXboxState()
 
 void Xbox360::publishConnStatus()
 {
+  bool    was_connected = m_msgConnStatus.is_connected;
+  bool    was_linked    = m_msgConnStatus.is_linked;
+
   m_msgConnStatus.is_connected  = m_hidXbox.isConnected();
   m_msgConnStatus.is_linked     = m_hidXbox.isLinked();
+
+  if( (m_msgConnStatus.is_connected != was_connected) ||
+      (m_msgConnStatus.is_linked != was_linked) )
+  {
+    ROS_INFO("Xbox360 %s, %s",
+        (m_msgConnStatus.is_connected? "connected": "not connected"),
+        (m_msgConnStatus.is_linked? "linked": "not linked"));
+  }
 
   // publish
   m_publishers["conn_status"].publish(m_msgConnStatus);
