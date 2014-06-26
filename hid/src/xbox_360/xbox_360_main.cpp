@@ -258,14 +258,14 @@ static void runNode(HIDXbox360 &hidXbox)
   //
   // Advertise publishers.
   //
-  xbox360.advertisePublishers(4);
+  xbox360.advertisePublishers();
   
   ROS_INFO("%s: Publishers registered.", strNodeName.c_str());
   
   //
   // Subscribed to topics.
   //
-  xbox360.subscribeToTopics(4);
+  xbox360.subscribeToTopics();
   
   ROS_INFO("%s: Subscribed topics registered.", strNodeName.c_str());
 
