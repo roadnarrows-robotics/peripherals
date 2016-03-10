@@ -463,6 +463,10 @@ int main(int argc, char* argv[])
       // Watch failure, probably a signal.
       return APP_EC_EXEC;
     }
+    else
+    {
+      usleep(350000);
+    }
   }
 
   return APP_EC_OK;
