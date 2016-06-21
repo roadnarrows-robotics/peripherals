@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>peripherals</name>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   <description>A metapackage for installing RoadNarrows' ROS packages for peripheral and hardware components (Human Input Devices (HIDs), motor controllers, Inertial measurement units (IMUs), etc.)</description>
   <maintainer email="daniel@roadnarrows.com">daniel packard</maintainer>
 

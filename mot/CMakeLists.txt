@@ -13,7 +13,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 find_library(
   rnr_LIBRARIES3
-  NAMES mot rnr
+  NAMES rnr_mot rnr
   PATHS /prj/lib /prj/lib/rnr /usr/local/lib/ /usr/local/lib/rnr
 )
 

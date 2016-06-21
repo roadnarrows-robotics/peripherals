@@ -19,7 +19,7 @@ find_library(LIBRNR
 
 find_library(LIBHID
   REQUIRED
-  NAMES hid
+  NAMES rnr_hid
   PATHS /prj/lib/rnr /usr/local/lib/rnr
 )
 

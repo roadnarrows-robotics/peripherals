@@ -13,7 +13,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 find_library(
   rnr_LIBRARIES4
-  NAMES imu rnr
+  NAMES rnr_imu rnr
   PATHS /prj/lib /prj/lib/rnr
 )
 
