@@ -10,16 +10,13 @@
 //
 /*! \file
  *
- * $LastChangedDate$
- * $Rev$
- *
  * \brief The ROS xbox_360 node main.
  *
  * \author Danial Packard (daniel@roadnarrows.com)
  * \author Robin Knight (robin.knight@roadnarrows.com)
  *
  * \par Copyright:
- * (C) 2014  RoadNarrows
+ * (C) 2014-2017  RoadNarrows
  * (http://www.roadnarrows.com)
  * \n All Rights Reserved
  */
@@ -465,7 +462,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      usleep(350000);
+      usleep(500000);
     }
   }
 
